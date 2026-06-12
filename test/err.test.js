@@ -55,9 +55,7 @@ test('serializes error causes', () => {
     assert.strictEqual(serialized.type, 'Error')
     assert.strictEqual(serialized.message, 'foo: bar: abc')
     assert.match(serialized.stack, /err\.test\.js:/)
-    assert.match(serialized.stack, /Error: foo/)
-    assert.match(serialized.stack, /Error: bar/)
-    assert.match(serialized.stack, /Error: abc/)
+    assert.match(serialized.stack, /Error: foo[\s\S]*?caused by: Error: bar[\s\S]*?caused by: Error: abc/)
     assert.ok(!serialized.cause)
   }
 })
@@ -75,9 +73,7 @@ test('serializes error causes with VError support', function (t) {
   assert.strictEqual(serialized.type, 'Error')
   assert.strictEqual(serialized.message, 'foo: bar: abc')
   assert.match(serialized.stack, /err\.test\.js:/)
-  assert.match(serialized.stack, /Error: foo/)
-  assert.match(serialized.stack, /Error: bar/)
-  assert.match(serialized.stack, /Error: abc/)
+  assert.match(serialized.stack, /Error: foo: bar[\s\S]*?caused by: Error: bar[\s\S]*?caused by: Error: abc/)
 })
 
 test('keeps non-error cause', () => {
