@@ -70,11 +70,11 @@ test('keeps error cause', () => {
   const table = [
     [Error('bar'), 'bar'],
     [{ message: 'baz' }, 'baz'],
-  ];
-  
+  ]
+
   for (const [cause, expectedMessage] of table) {
     {
-      const err = Error('foo', { cause: cause });
+      const err = Error('foo', { cause })
       const serialized = serializer(err)
       assert.strictEqual(serialized.cause.message, expectedMessage)
     }
@@ -101,7 +101,7 @@ test('keeps non-error cause', () => {
     const serialized = serializer(err)
     assert.strictEqual(serialized.type, 'Error')
     assert.strictEqual(serialized.message, 'foo')
-    assert.strictEqual(serialized.cause, 'abc') // fails here
+    assert.strictEqual(serialized.cause, 'abc')
   }
 })
 

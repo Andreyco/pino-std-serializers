@@ -56,7 +56,6 @@ test('serializes error causes', () => {
     assert.strictEqual(serialized.message, 'foo: bar: abc')
     assert.match(serialized.stack, /err\.test\.js:/)
     assert.match(serialized.stack, /Error: foo[\s\S]*?caused by: Error: bar[\s\S]*?caused by: Error: abc/)
-    assert.ok(!serialized.cause)
   }
 })
 
@@ -79,18 +78,29 @@ test('serializes error causes with VError support', function (t) {
 test('keeps non-error cause', () => {
   {
     const err = Error('foo')
-    err.cause = 'abc'
+    err.cause = 'bar'
     const serialized = serializer(err)
     assert.strictEqual(serialized.type, 'Error')
-    assert.strictEqual(serialized.message, 'foo')
-    assert.strictEqual(serialized.cause, 'abc')
+    assert.strictEqual(serialized.message, 'foo: bar')
+    assert.strictEqual(serialized.cause, 'bar')
+    assert.match(serialized.stack, /Error: foo[\s\S]*?caused by: bar/)
   }
   {
-    const err = Error('foo', { cause: 'abc' })
+    const err = Error('foo', { cause: 'bar' })
     const serialized = serializer(err)
     assert.strictEqual(serialized.type, 'Error')
-    assert.strictEqual(serialized.message, 'foo')
-    assert.strictEqual(serialized.cause, 'abc') // fails here
+    assert.strictEqual(serialized.message, 'foo: bar')
+    assert.strictEqual(serialized.cause, 'bar')
+    assert.match(serialized.stack, /Error: foo[\s\S]*?caused by: bar/)
+  }
+  {
+    const err = Error('foo', { cause: { message: 'bar', cause: 'baz' } })
+    const serialized = serializer(err)
+    assert.strictEqual(serialized.type, 'Error')
+    assert.strictEqual(serialized.message, 'foo: bar: baz')
+    assert.strictEqual(serialized.cause.message, 'bar')
+    assert.strictEqual(serialized.cause.cause, 'baz')
+    assert.match(serialized.stack, /Error: foo[\s\S]*?caused by: bar[\s\S]*?caused by: baz/)
   }
 })
 
@@ -287,6 +297,7 @@ test('uses toJSON() with error causes', () => {
   assert.ok(!('cause' in serialized))
   assert.match(serialized.message, /test/)
   assert.strictEqual(serialized.name, 'MyError')
+  assert.match(serialized.stack, /MyError: test[\s\S]*?caused by: Error: cause/)
 })
 
 test('uses toJSON() - custom fields not added if not in toJSON output', () => {
