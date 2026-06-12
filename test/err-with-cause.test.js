@@ -88,12 +88,21 @@ test('keeps error cause', () => {
 })
 
 test('keeps non-error cause', () => {
-  const err = Error('foo')
-  err.cause = 'abc'
-  const serialized = serializer(err)
-  assert.strictEqual(serialized.type, 'Error')
-  assert.strictEqual(serialized.message, 'foo')
-  assert.strictEqual(serialized.cause, 'abc')
+  {
+    const err = Error('foo')
+    err.cause = 'abc'
+    const serialized = serializer(err)
+    assert.strictEqual(serialized.type, 'Error')
+    assert.strictEqual(serialized.message, 'foo')
+    assert.strictEqual(serialized.cause, 'abc')
+  }
+  {
+    const err = Error('foo', { cause: 'abc' })
+    const serialized = serializer(err)
+    assert.strictEqual(serialized.type, 'Error')
+    assert.strictEqual(serialized.message, 'foo')
+    assert.strictEqual(serialized.cause, 'abc') // fails here
+  }
 })
 
 test('prevents infinite recursion', () => {
